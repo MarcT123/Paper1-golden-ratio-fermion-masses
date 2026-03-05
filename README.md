@@ -1,7 +1,7 @@
 # Golden Ratio Structure in Fermion Mass Ratios
 
 **Companion code for:**
-M. Tromel, "Statistical evidence for golden ratio structure in elementary fermion
+M. Trömel, "Statistical evidence for golden ratio structure in elementary fermion
 mass ratios with QCD regime dependence"
 
 ## Overview
@@ -134,5 +134,5 @@ MIT License. See LICENSE file.
 
 ## Contact
 
-Marc Tromel — marc.troe@gmail.com
+Marc Trömel — marc.troe@gmail.com
 Independent Researcher, Nürtingen, Germany
