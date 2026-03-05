@@ -1,0 +1,6 @@
+# Pinned versions for bitwise-identical p-values as reported in the paper.
+# Monte Carlo p-values depend on the RNG implementation, which can differ
+# between NumPy versions. These versions were used for the final paper.
+numpy==2.2.3
+scipy==1.15.2
+matplotlib==3.10.1
