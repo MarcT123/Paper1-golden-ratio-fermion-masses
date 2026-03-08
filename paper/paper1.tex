@@ -16,7 +16,6 @@
 \usepackage{float}
 
 % === FIGURE PATH (for arXiv / out-of-tree builds) ===
-\graphicspath{{./}{../figures/}}
 
 % === HYPERREF SETUP ===
 \hypersetup{
@@ -44,6 +43,8 @@
 
 \date{March 2026}
 
+\graphicspath{{../figures/}}
+
 \begin{document}
 \maketitle
 
@@ -53,10 +54,11 @@
 \begin{abstract}
 We report a statistically significant golden ratio
 ($\Phi = (1{+}\sqrt{5})/2 \approx 1.618$) structure in the mass ratios
-of elementary fermions. Starting from the electron mass alone, a
-recursive bootstrap algorithm reproduces 11 Standard Model particle
-masses using five $\Phi$-based operators, with a mean error of 2.5\%.
-The operator exponents $\{3, 4, 11\}$ are Lucas numbers ($L_2, L_3, L_5$),
+of elementary fermions. Starting from the electron mass as the sole seed
+of a recursive bootstrap algorithm, 11 Standard Model particle
+masses are reproduced using five $\Phi$-based operators, with a mean error of 2.5\%.
+The operator exponents $\{3, 4, 11\}$ are Lucas numbers ($L_2, L_3, L_5$;
+the selection of these three from the infinite Lucas sequence is empirical),
 and the non-integer operators $\Phi^\Phi$ and $\Phi^{1/\Phi}$ satisfy
 $\Phi^\Phi / \Phi^{1/\Phi} = \Phi$ (proven from $\Phi^2 = \Phi + 1$).
 A universality test shows no alternative constant
@@ -90,12 +92,12 @@ QCD regime dependence, hadron spectrum, statistical test
 \section{Introduction}
 \label{sec:intro}
 
-The Standard Model of particle physics contains 15 Yukawa coupling
-constants that determine the masses of the elementary fermions
-(6 quarks, 3 charged leptons, and at least 2 massive neutrinos).
-These parameters are not predicted by the theory; they are extracted
-from experiment and span more than five orders of magnitude, from
-$m_e = 0.511$~MeV to $m_t = 172{,}760$~MeV. Whether an organizing
+The Standard Model of particle physics contains nine Yukawa coupling
+constants that determine the masses of the charged fermions
+(6 quarks and 3 charged leptons); with massive neutrinos, additional
+parameters enter. None of these are predicted by the theory; they are
+extracted from experiment and span more than five orders of magnitude,
+from $m_e = 0.511$~MeV to $m_t = 172{,}760$~MeV. Whether an organizing
 principle underlies these apparently arbitrary values remains one of
 the central open questions in particle physics~\cite{Xing2020,Fritzsch2000}.
 
@@ -144,11 +146,13 @@ delineate the domain of validity, and present falsifiable predictions.
 \subsection{Mass spectrum}
 \label{sec:spectrum}
 
-Starting from the electron mass $m_e = 0.511$~MeV as the sole input,
+Starting from the electron mass $m_e = 0.511$~MeV as the sole seed,
 we construct a correlation graph in which each particle mass is
 related to a ``parent'' mass by one of five $\Phi$-operators or by a
-geometric mean (impedance) of two already-identified masses. The
-algorithm is defined in Appendix~\ref{app:algorithm}.
+geometric mean (impedance) of two already-identified masses.
+Each prediction in the table below uses the PDG mass of the
+parent particle, not a chain-propagated value; the algorithm
+is defined in Appendix~\ref{app:algorithm}.
 
 Table~\ref{tab:genesis} shows the resulting predictions against
 PDG~2024 reference values~\cite{PDG2024}. Each row represents a
@@ -159,6 +163,8 @@ PDG value of the parent particle.
 \centering
 \caption{Genesis predictions vs.\ PDG~2024 reference masses.
 Each prediction uses the PDG mass of the parent particle.
+Rows are sorted by mass, not by algorithmic generation order;
+see Appendix~\ref{app:algorithm} for the iterative construction.
 $\Phi = (1{+}\sqrt{5})/2 = 1.6180339887\ldots$}
 \label{tab:genesis}
 \begin{tabular}{@{}lrrcr@{}}
@@ -168,7 +174,7 @@ Particle & $M_\text{pred}$ (MeV) & $M_\text{PDG}$ (MeV) &
 \midrule
 Electron & 0.511 & 0.511 & Seed & --- \\
 Up       & 2.165  & 2.16  & $m_e \times \Phi^3$          & 0.2\% \\
-Down     & 4.714  & 4.67  & $m_u \times \Phi^\Phi$       & 0.8\% \\
+Down     & 4.706  & 4.67  & $m_u \times \Phi^\Phi$       & 0.8\% \\
 Strange  & 95.02  & 93.4  & $\sqrt{m_u \cdot m_b}$       & 1.7\% \\
 Muon     & 101.69 & 105.66 & $m_e \times \Phi^{11}$      & 3.8\% \\
 Pion     & 139.72 & 139.57 & $\sqrt{m_d \cdot m_b}$      & 0.1\% \\
@@ -207,8 +213,14 @@ error by less than 0.02 percentage points and leaves all statistical
 conclusions unchanged.} $\overline{\text{MS}}$ at $\mu = 2$~GeV for light
 quarks ($u$, $d$, $s$), $\overline{\text{MS}}$ at $\mu = m_q$ for
 charm and bottom, and physical masses for pion and proton. Four of the
-eleven chain entries depend on this convention; a convention-independent
+eleven chain entries depend on this convention (those using $u$, $d$,
+or $s$ as parent mass); a convention-independent
 subset is tested separately in Section~\ref{sec:convindep}.
+The bottom quark ($\overline{\text{MS}}$ at $\mu = m_b$) is counted
+as convention-independent because the self-scale running mass is
+uniquely defined and lies well within the perturbative QCD regime
+($m_b \gg \Lambda_{\text{QCD}}$), whereas the light quark masses at
+$\mu = 2$~GeV depend on an external choice of renormalization point.
 
 \subsection{Algebraic structure of the operators}
 \label{sec:algebra}
@@ -346,7 +358,7 @@ Ladder & Members & Phase (circular mean) \\
 
 \noindent
 \textbf{Result:}
-$G_\text{obs} = 0.181$ vs.\ $G_\text{expected} = 1/6 = 0.167$.
+$G_\text{obs} = 0.181$ vs.\ $G_\text{min} = 1/6 = 0.167$ (perfect uniformity).
 Monte Carlo ($5 \times 10^5$ random configurations of 6 points on
 $[0,1)$): $P(G \leq G_\text{obs}) = 0.007$.
 
@@ -397,8 +409,8 @@ pion, proton, bottom ($\overline{\text{MS}}$ at $m_b$, i.e.,
 self-scale), and top.
 
 For this seven-particle subset: chain connectivity at 5\% yields
-$p = 0.014$; a basis scan over 300 random bases $\beta \in [1.05, 3.5]$
-gives $\Phi$ rank \#2/300 ($p = 0.007$). The signal exists
+$p = 0.019$; a basis scan over 300 random bases $\beta \in [1.05, 3.5]$
+gives $\Phi$ rank \#1/301 ($p = 0.003$). The signal exists
 independently of the 2~GeV convention.
 
 \subsection{Robustness: alternative bases and tolerances}
@@ -441,9 +453,9 @@ At 10\% tolerance, $\Phi$ is the \emph{only} standard mathematical constant
 that achieves complete reproduction. The Euler number $e$ never finds
 more than the seed electron; $\pi$ reaches only 1/11 at 10\% but
 achieves 10/11 at 15\% through the $\Phi^{2.4}$ reparametrization
-channel (since $\pi \approx 3.14$ lies near $\Phi^{2.4} \approx 3.19$).
+channel (since $\pi \approx 3.14$ lies near $\Phi^{2.4} \approx 3.17$).
 The base~2 requires $\geq 10\%$ tolerance (9/11) and reaches 11/11 at
-15\%. The secondary cluster at $\beta \approx 3.19 \approx \Phi^{2.4}$
+15\%. The secondary cluster at $\beta \approx 3.17 \approx \Phi^{2.4}$
 that also achieves 11/11 at 10\% is a reparametrization, not an
 independent constant: it exists because $\beta^{11} \approx m_t/m_e$,
 exploiting the same $\Phi$-structured mass ratios through rescaled
@@ -455,9 +467,11 @@ interchangeable with other irrational constants.
 \label{sec:pdg_errors}
 
 PDG measurement uncertainties range from $< 10^{-6}$ (electron,
-muon) to 3.2\% (up quark). For 8 of 11 particles, the relative
+muon) to $\sim 20\%$ (up quark). For 7 of 11 particles, the relative
 experimental uncertainty is below 1\%, i.e., one to two orders of
 magnitude smaller than the typical Genesis deviation (2.5\% mean).
+The three light quarks ($u$, $d$, $s$) and charm carry uncertainties
+of order 1--20\%.
 Sensitivity to PDG measurement uncertainties varies across tests and
 is governed by which input masses carry large relative errors.
 The lepton masses ($m_e$, $m_\mu$, $m_\tau$) are known to
@@ -520,6 +534,11 @@ $\overline{\text{MS}}$ masses $m_i$, we define the
 When $R > 0.5$, QCD vacuum energy dominates the hadron mass
 (chiral regime). When $R < 0.5$, bare quark masses dominate
 (perturbative regime).
+Note: $R$ is a heuristic classification parameter, not a
+scheme-independent observable; the decomposition
+$M_H = \sum m_i + E_\text{bind}$ depends on the
+$\overline{\text{MS}}$ renormalization scheme.
+Its utility lies in its empirical separating power, tested below.
 
 \subsection{Empirical test}
 \label{sec:regimetest}
@@ -537,7 +556,8 @@ a statistically significant $\Phi$-relation exists for that hadron
 \centering
 \caption{QCD-dominance parameter $R$ and $\Phi$-relation status
 for nine hadrons. Quark masses: PDG~2024~\cite{PDG2024}
-$\overline{\text{MS}}$ values.}
+$\overline{\text{MS}}$ values. Hadron masses from PDG~2024 unless
+noted.}
 \label{tab:regime}
 \begin{tabular}{@{}lrrrcc@{}}
 \toprule
@@ -551,9 +571,11 @@ $\Omega^-(1672)$     & 1{,}672 & 280 & 0.83 & \checkmark & QCD \\
 $\Lambda_c(2287)$    & 2{,}287 & 1{,}277 & 0.44 & $\times$ & Quark \\
 $\Omega_b^-(6046)$   & 6{,}046 & 4{,}367 & 0.28 & $\times$ & Quark \\
 $\Lambda_b(5620)$    & 5{,}620 & 4{,}187 & 0.26 & $\times$ & Quark \\
-$\Omega_{ccc}(4761)$ & 4{,}761 & 3{,}810 & 0.20 & $\times$ & Quark \\
-$\Omega_{bbb}(14371)$& 14{,}371 & 12{,}540 & 0.13 & $\times$ & Quark \\
+$\Omega_{ccc}(4761)^\dagger$ & 4{,}761 & 3{,}810 & 0.20 & $\times$ & Quark \\
+$\Omega_{bbb}(14371)^\dagger$& 14{,}371 & 12{,}540 & 0.13 & $\times$ & Quark \\
 \bottomrule
+\multicolumn{6}{@{}l}{\footnotesize $^\dagger$Not yet observed;
+  masses from lattice QCD predictions.}
 \end{tabular}
 \end{table}
 
@@ -715,11 +737,11 @@ The $\Phi$-structure is restricted to the fermion (Yukawa) sector.
 \label{sec:falsified}
 
 Table~\ref{tab:falsified} collects all hypotheses that were tested and
-rejected.
+found unsupported or falsified.
 
 \begin{table}[H]
 \centering
-\caption{Seven falsified hypotheses.}
+\caption{Seven tested hypotheses without support.}
 \label{tab:falsified}
 \begin{tabular}{@{}lll@{}}
 \toprule
@@ -817,19 +839,20 @@ negative controls, and falsification tests.
 \end{enumerate}
 
 \noindent
-\textbf{What we do claim:} A statistically significant, not
-otherwise explainable $\Phi$-structure exists in the elementary
-fermion masses, with a clearly defined, physically motivated domain
+\textbf{What we do claim:} A statistically significant
+$\Phi$-structure exists in the elementary
+fermion masses, not reproducible by alternative standard mathematical
+constants, with a clearly defined, physically motivated domain
 of validity.
 
 \subsection{Structural limitations}
 \label{sec:limitations}
 
 The top quark exhibits the largest deviation (8.1\%), arising from
-the highest-power operator $\Phi^{11} \approx 199$. Because the
-top mass is reached via $m_t = m_p \times \Phi^{11}$, any sub-percent
-error in the proton--top chain is amplified by a factor of $\sim 200$.
-A 0.04\% shift in $m_p$ propagates to an 8\% shift in $m_t$. This is a
+the highest-power operator $\Phi^{11} \approx 199$. The observed mass
+ratio $m_t / m_p = 184.1$ deviates from $\Phi^{11} = 199.0$ by 8.1\%;
+because the operator is a large multiplier, this fractional mismatch
+translates into an absolute error of $\sim 14{,}000$~MeV. This is a
 structural limitation of the multiplicative chain, not an anomaly.
 Future precision measurements at the ILC or FCC-ee
 ($\delta m_t < 50$~MeV projected) will tighten this constraint.
@@ -867,9 +890,9 @@ the three best out of eight inflates significance.
 Two mitigating factors should be noted.
 First, the selection is physically motivated: these three particles
 form the $\Phi$-ladder starting from the electron as seed, with the
-resulting exponents being Lucas numbers $L_2 = 3$,
-$L_5 = 11$, and $3 + 11 + 3 = 17$. The mathematical structure was
-\emph{not} chosen to maximize $\Delta n$ statistics.
+exponents $n = 3$ ($L_2$), $n = 11$ ($L_5$), and $n = 17$
+($= L_2 + L_5 + L_2$, itself not a Lucas number). The mathematical
+structure was \emph{not} chosen to maximize $\Delta n$ statistics.
 Second, the complementary tests A2 (phase uniformity testing all nine
 fermions), A3 ($\Phi$-universality scanning $K \in [1.2, 2.5]$ against
 all five independent ratios), and the holdout test (D1)
@@ -915,9 +938,11 @@ investigation:
 \section{Conclusion}
 \label{sec:conclusion}
 
-The golden ratio $\Phi$ organizes the elementary fermion mass spectrum
-of the Standard Model~\cite{PDG2024}. This is statistically confirmed ($p < 0.001$
-combined) and not explainable by alternative constants ($p = 0.001$).
+A statistically significant golden ratio structure pervades the
+elementary fermion mass spectrum
+of the Standard Model~\cite{PDG2024} ($p < 0.001$
+combined), not reproducible by alternative standard mathematical
+constants ($p = 0.001$).
 The $\Phi$-structure is algebraically nontrivial (Lucas numbers,
 self-reference identity) and leaves selective traces in the hadron
 spectrum --- but exclusively where QCD vacuum dynamics dominate the
@@ -969,15 +994,25 @@ interpretations, and errors are solely the responsibility of the author.
 The algorithm terminates after at most 4 generations. The resulting
 graph is a directed acyclic graph (DAG) with the electron as root.
 
+\noindent\emph{Note:}
+The best-match rule does not uniquely determine the chain shown in
+Table~\ref{tab:genesis}. Alternative paths with comparable errors
+exist (e.g., $m_d \times \Phi^{11}$ for the proton at 0.95\%
+vs.\ $m_\pi \times \Phi^4$ at 2.0\%). Table~\ref{tab:genesis}
+reports the chain selected for physical interpretability
+(minimal operator reuse, impedances connecting different sectors).
+All statistical tests in Section~\ref{sec:stats} are independent
+of this path selection.
+
 \section{Code availability}
 \label{app:code}
 
 All statistical tests reported in this paper are reproduced by:
 \begin{itemize}
   \item \texttt{master\_verification\_v10.py} --- All Level~A, B, and D
-        tests including the full 167-hadron holdout (1163 lines, Python~3.8+, NumPy, SciPy)
+        tests including the full 167-hadron holdout (1171 lines, Python~3.8+, NumPy, SciPy)
   \item \texttt{regime\_hypothesis\_v9.py} --- Regime hypothesis, ROC
-        analysis, chiral derivation (283 lines)
+        analysis, chiral derivation (288 lines)
 \end{itemize}
 All random number generators are seeded (\texttt{seed=42}) for
 reproducibility within numerical tolerances. Code is available at
@@ -1015,13 +1050,13 @@ The test asks: for random baryon-scale mass steps and random quark-mass
 differences, how often does their ratio land as close to $\Phi^n$ as
 the observed ratio $\Delta M / \Delta m_q = 1.63$?
 The step range $[100, 200]$~MeV brackets the empirical spread of baryon
-decuplet and octet splittings: the smallest confirmed splitting is
-$\Sigma^* - \Sigma \approx 120$~MeV; the largest is
-$\Omega^- - \Xi^* \approx 141$~MeV. Padding to $[100, 200]$~MeV
-adds 25\% margin on each side.
+decuplet splittings: the smallest is
+$\Omega^- - \Xi^* \approx 140$~MeV; the largest is
+$\Sigma^* - \Delta \approx 152$~MeV. Padding to $[100, 200]$~MeV
+adds generous margin on each side.
 The quark-mass difference range $[50, 200]$~MeV spans from the
 isospin-breaking scale ($m_d - m_u \approx 2.5$~MeV, padded generously)
-to the strange-charm gap ($m_s \approx 93$~MeV, doubled). This ensures
+to twice the strange quark mass ($m_s \approx 93$~MeV, doubled). This ensures
 the null hypothesis includes ratios both much smaller and much larger
 than $\Phi$.
 
