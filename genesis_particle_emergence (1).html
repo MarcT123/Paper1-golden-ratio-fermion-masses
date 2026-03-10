@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEM · Die Genesis der Teilchen</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #e8b84a; --green: #2ecc71; --red: #c44;
+    --teal: #5ab89a; --bg: #060c14; --surface: #0a1218;
+    --panel: #0f1e2a; --border: #1a2a38; --text: #c8d8e8;
+    --muted: #7a9aaa; --dim: #4a6a7e; --mono: 'JetBrains Mono', monospace;
+    --serif: 'Cormorant Garamond', serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 48px; }
+  canvas { display: block; width: 100%; border-radius: 6px; }
+
+  /* Hero */
+  .hero { padding: 32px 24px 20px; border-bottom: 1px solid var(--border); background: radial-gradient(ellipse at 30% 20%, rgba(232,184,74,0.03), transparent 60%); }
+  .hero-sub { font-size: 10px; color: var(--dim); font-family: var(--mono); letter-spacing: 2px; margin-bottom: 6px; }
+  .hero h1 { font-family: var(--serif); font-size: 32px; font-weight: 700; color: #e0d4c0; }
+  .hero p { margin-top: 8px; color: var(--muted); font-size: 15px; max-width: 640px; font-family: var(--serif); font-style: italic; }
+
+  /* Controls */
+  .controls { padding: 14px 0 12px; border-bottom: 1px solid var(--border); }
+  .ctrl-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ctrl-label { color: #5a7a8e; font-size: 10px; font-family: var(--mono); letter-spacing: 1px; min-width: 42px; }
+  .k-value { font-size: 22px; font-weight: 700; font-family: var(--mono); min-width: 80px; transition: color 0.3s; }
+  .k-slider { flex: 1; min-width: 180px; accent-color: #5a7a8e; }
+  .k-slider.golden { accent-color: var(--gold); }
+  .btn { border: 1px solid var(--border); border-radius: 4px; padding: 5px 14px; font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.2s; }
+  .btn-phi { border-color: var(--gold); }
+  .btn-phi.active { background: var(--gold); color: var(--bg); font-weight: 700; }
+  .btn-phi:not(.active) { background: var(--border); color: var(--muted); }
+  .btn-sweep { background: var(--border); color: var(--muted); }
+  .btn-sweep.active { background: #c06080; color: #fff; }
+
+  /* Snap Gauge */
+  .gauge { display: flex; flex-direction: column; gap: 6px; }
+  .gauge-row { display: flex; align-items: center; gap: 8px; }
+  .gauge-label { width: 70px; font-size: 11px; font-family: var(--mono); color: #8a9aaa; text-align: right; flex-shrink: 0; }
+  .gauge-bar { flex: 1; height: 18px; background: #0c1820; border-radius: 9px; overflow: hidden; position: relative; border: 1px solid var(--border); }
+  .gauge-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(200,200,200,0.08); transform: translateX(-1px); }
+  .gauge-fill { position: absolute; left: 50%; top: 2px; bottom: 2px; border-radius: 7px; transform: translateX(-50%); transition: all 0.3s ease; }
+  .gauge-needle { position: absolute; top: 2px; bottom: 2px; width: 3px; border-radius: 2px; transform: translateX(-1.5px); transition: left 0.3s ease; }
+  .gauge-val { width: 58px; font-size: 10px; font-family: var(--mono); text-align: left; flex-shrink: 0; }
+  .gauge-summary { display: flex; align-items: center; gap: 8px; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .gauge-max { flex: 1; font-size: 20px; font-family: var(--mono); font-weight: 700; }
+  .gauge-status { font-size: 11px; font-family: var(--mono); font-weight: 700; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 3px; padding: 12px 0 0; border-bottom: 1px solid var(--border); }
+  .tab { padding: 8px 14px; cursor: pointer; border: none; border-radius: 5px 5px 0 0; background: transparent; color: var(--dim); font-family: var(--mono); font-size: 11px; font-weight: 400; border-bottom: 2px solid transparent; letter-spacing: 0.5px; transition: all 0.2s; }
+  .tab.active { background: var(--panel); color: var(--gold); font-weight: 700; border-bottom-color: var(--gold); }
+  .tab-content { display: none; padding-top: 12px; }
+  .tab-content.active { display: block; }
+
+  /* Info panels */
+  .info { padding: 12px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); font-size: 12px; color: #8a9aaa; line-height: 1.7; margin-top: 12px; }
+  .info strong { color: var(--gold); }
+  .info-green { border-color: rgba(46,204,113,0.2); }
+  .info-gold { border-color: rgba(232,184,74,0.2); }
+
+  /* Stat boxes */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .stat { padding: 12px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); }
+  .stat-label { font-size: 10px; color: #5a7a8e; font-family: var(--mono); margin-bottom: 4px; }
+  .stat-val { font-size: 18px; font-weight: 700; font-family: var(--mono); }
+  .stat-sub { font-size: 11px; margin-top: 2px; }
+
+  /* Tables */
+  .proof-box { margin: 12px 0; padding: 14px; background: var(--surface); border-radius: 6px; }
+  .proof-box h3 { font-family: var(--mono); font-size: 12px; margin-bottom: 8px; }
+  .proof-box p { font-size: 14px; line-height: 1.8; }
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+  th { padding: 4px 8px; border-bottom: 1px solid #1e3040; color: var(--dim); text-align: right; }
+  th:first-child { text-align: left; }
+  td { padding: 4px 8px; border-bottom: 1px solid #0e1820; color: #7a9aaa; text-align: right; }
+  td:first-child { text-align: left; }
+
+  /* Lucas bars */
+  .lucas { display: flex; gap: 5px; flex-wrap: wrap; align-items: flex-end; }
+  .lucas-bar { text-align: center; }
+  .lucas-bar-inner { width: 34px; border-radius: 3px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 3px; }
+  .lucas-bar-inner span { font-size: 13px; font-weight: 700; font-family: var(--mono); }
+  .lucas-idx { font-size: 8px; color: #3a5a6e; margin-top: 2px; font-family: var(--mono); }
+
+  .desc { color: var(--muted); font-size: 12px; margin: 0 0 10px; line-height: 1.6; }
+  .footer { margin-top: 28px; text-align: center; color: #2a3a4a; font-size: 10px; font-family: var(--mono); }
+
+  /* SVG tree */
+  #tree-svg { width: 100%; max-width: 720px; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div style="max-width:860px;margin:0 auto">
+    <div class="hero-sub">THEORY OF EMERGENT MATTER</div>
+    <h1>Die Genesis der Teilchen</h1>
+    <p>Fünf Schlüsselrelationen zwischen Teilchenmassen liegen bei K = Φ gleichzeitig auf ganzzahligen Exponenten. Bei keiner anderen Basis K gelingt das.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="ctrl-row">
+      <span class="ctrl-label">BASIS</span>
+      <span id="kDisplay" class="k-value">K = 1.6180</span>
+      <input id="kSlider" type="range" min="1.2" max="2.5" step="0.001" value="1.6180339887" class="k-slider golden">
+      <button id="btnPhi" class="btn btn-phi active" onclick="snapToPhi()">K = Φ</button>
+      <button id="btnSweep" class="btn btn-sweep" onclick="toggleSweep()">▶ Sweep</button>
+    </div>
+    <div id="gauge" class="gauge"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('lattice')">⊞ Φ-Gitter</button>
+    <button class="tab" onclick="switchTab('compare')">📊 K-Vergleich</button>
+    <button class="tab" onclick="switchTab('resonance')">〜 Resonanz</button>
+    <button class="tab" onclick="switchTab('tree')">🌳 Stammbaum</button>
+    <button class="tab" onclick="switchTab('proof')">📐 Beweis</button>
+  </div>
+
+  <!-- TAB: LATTICE -->
+  <div id="tab-lattice" class="tab-content active">
+    <p class="desc">Die 4 <span style="color:#e8b84a;font-weight:600">Hauptleiter-Teilchen</span> (e, u, μ, τ) müssen bei K = Φ auf ganzzahligen Gitterpunkten liegen. Die gestrichelten Kreise zeigen die Ziel-Gitterpunkte. Nur bei K = Φ snappen alle vier gleichzeitig ein.</p>
+    <canvas id="latticeCanvas" width="800" height="280"></canvas>
+  </div>
+
+  <!-- TAB: COMPARE -->
+  <div id="tab-compare" class="tab-content">
+    <p class="desc">Für jedes K wird max|Δn| über die 5 Schlüsselrelationen berechnet. Nur unterhalb der grünen Linie treffen alle gleichzeitig. <strong style="color:#e8b84a">Φ ist die einzige Basis im gesamten Intervall [1,2; 2,5], die das schafft.</strong> Klicken Sie ins Diagramm.</p>
+    <canvas id="compareCanvas" width="700" height="260" style="cursor:crosshair"></canvas>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">BEI K = Φ = 1.6180</div><div id="statPhi" class="stat-val" style="color:#2ecc71"></div><div class="stat-sub" style="color:#2ecc71">Alle 5 Relationen treffen gleichzeitig</div></div>
+      <div class="stat"><div id="statCurLabel" class="stat-label"></div><div id="statCur" class="stat-val"></div><div id="statCurSub" class="stat-sub"></div></div>
+    </div>
+    <div class="info info-gold"><strong>MC-Ergebnis (Paper 1, Test A3):</strong> Von 200.000 zufälligen K erreichen nur 0,1% max|Δn| ≤ 0,08. Alle liegen im Cluster |K − Φ| &lt; 0,03. p-Wert = 0,001.</div>
+  </div>
+
+  <!-- TAB: RESONANCE -->
+  <div id="tab-resonance" class="tab-content">
+    <p class="desc">Jede der 5 Schlüsselrelationen als Welle: Bei <span style="color:#2ecc71">Resonanz</span> (K = Φ) kohärente Stehwellen. Bei <span style="color:#c44">Nicht-Resonanz</span> chaotische Destruktion. Verschieben Sie K und beobachten Sie den Übergang.</p>
+    <canvas id="resonanceCanvas" width="700" height="360"></canvas>
+    <div class="info"><strong>Analogie:</strong> Wie Chladni-Figuren bei der richtigen Frequenz stabile Muster bilden, erzeugt K = Φ eine Resonanz im Skalenraum. Die Teilchenmassen materialisieren dort, wo die Basis ganzzahlige Vielfache erzeugt.</div>
+  </div>
+
+  <!-- TAB: TREE -->
+  <div id="tab-tree" class="tab-content">
+    <p class="desc">Vom Elektron erzeugen 5 Operatoren alle 9 Fermionen. Gold = Lucas-Sprünge (Φ³, Φ⁴, Φ¹¹). Gestrichelt = abgeleitete Ketten.</p>
+    <div id="treeContainer"></div>
+    <div style="margin-top:16px;padding:14px;background:#0a1218;border-radius:6px;border:1px solid #1a2a38">
+      <h3 style="font-family:var(--mono);font-size:12px;color:#e8b84a;margin-bottom:10px">LUCAS-ZAHLEN — Die Sprungweiten</h3>
+      <div id="lucasViz" class="lucas"></div>
+      <div style="margin-top:10px;font-size:12px;color:#7a9aaa;line-height:1.7">
+        <p style="margin:0 0 6px"><strong style="color:#e8b84a">Satz:</strong> Für n ≥ 2: L<sub>n</sub> = round(Φⁿ). Die Exponenten {3, 4, 11} = {L₂, L₃, L₅} — die nächsten ganzen Zahlen zu Φ², Φ³, Φ⁵.</p>
+        <p style="margin:0"><strong style="color:#e8b84a">Operatorzählung:</strong> 5 → 2 Fixpunkt → 3 Lucas → <span style="color:#2ecc71;font-weight:700">0 freie Exponenten</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PROOF -->
+  <div id="tab-proof" class="tab-content">
+    <div class="proof-box" style="border:1px solid rgba(232,184,74,0.2)">
+      <h3 style="color:#e8b84a">SATZ 1 — Eindeutigkeit des Fixpunkts</h3>
+      <p style="color:#c8d8e8">e<sup>(e − 1/e)</sup> = e hat als einzige positive Lösung e = Φ.</p>
+      <p style="color:#8a9aaa"><strong>Beweis:</strong> e − 1/e = 1 ⟹ e² − e − 1 = 0 ⟹ e = (1+√5)/2 = Φ. ∎</p>
+    </div>
+    <div class="proof-box" style="border:1px solid rgba(46,204,113,0.2)">
+      <h3 style="color:#2ecc71">SATZ 5 — L<sub>n</sub> = round(Φⁿ) für n ≥ 2</h3>
+      <p style="color:#c8d8e8">Φⁿ = L<sub>n</sub> + ψⁿ, |ψ| = 1/Φ &lt; 1. Für n ≥ 2: |ψⁿ| &lt; 1/2, also round(Φⁿ) = L<sub>n</sub>. ∎</p>
+      <table id="lucasTable" style="margin-top:8px"></table>
+    </div>
+    <div class="proof-box">
+      <h3 style="color:#e8b84a">EPISTEMISCHER STATUS</h3>
+      <table id="statusTable"></table>
+    </div>
+  </div>
+
+  <div class="footer">TEM · Genesis der Teilchen · Paper 1 &amp; 2 · Alle Berechnungen live · März 2026</div>
+</div>
+
+<script>
+// ============================================================
+// DATA & CONSTANTS
+// ============================================================
+const PHI = (1 + Math.sqrt(5)) / 2;
+const LOG_PHI = Math.log(PHI);
+const e_mass = 0.51099895;
+
+const PARTICLES = [
+  { sym:"e", name:"Elektron",     mass:0.51099895, type:"lepton", main:true },
+  { sym:"u", name:"Up-Quark",     mass:2.16,       type:"quark",  main:true },
+  { sym:"d", name:"Down-Quark",   mass:4.67,       type:"quark",  main:false },
+  { sym:"s", name:"Strange",      mass:93.4,       type:"quark",  main:false },
+  { sym:"μ", name:"Myon",         mass:105.6583755,type:"lepton", main:true },
+  { sym:"c", name:"Charm",        mass:1270.0,     type:"quark",  main:false },
+  { sym:"τ", name:"Tau",          mass:1776.86,    type:"lepton", main:true },
+  { sym:"b", name:"Bottom",       mass:4180.0,     type:"quark",  main:false },
+  { sym:"t", name:"Top",          mass:172760.0,   type:"quark",  main:false },
+];
+
+const KEY_RELATIONS = [
+  { name:"u / e",   ratio: 2.16 / e_mass },
+  { name:"μ / e",   ratio: 105.6583755 / e_mass },
+  { name:"τ / e",   ratio: 1776.86 / e_mass },
+  { name:"Ω⁻ / s",  ratio: 1672.45 / 93.4 },
+  { name:"ΔM / Δm", ratio: ((1383.7-1232+1531.8-1383.7+1672.45-1531.8)/3) / (93.4-(2.16+4.67)/2) },
+];
+
+const LUCAS = [2,1,3,4,7,11,18,29];
+const LUCAS_USED = [3,4,11];
+
+const EDGES = [
+  {from:"e",to:"u",op:"Φ³",luc:true},{from:"e",to:"μ",op:"Φ¹¹",luc:true},{from:"e",to:"d",op:"Φ⁴",luc:true},
+  {from:"u",to:"s",op:"Φ^Φ·Φ⁴",luc:false},{from:"μ",to:"c",op:"Φ⁴·Φ^(1/Φ)",luc:false},
+  {from:"u",to:"τ",op:"Φ^Φ·Φ¹¹",luc:false},{from:"τ",to:"b",op:"≈Φ²",luc:false},{from:"c",to:"t",op:"≈Φ¹⁰",luc:false},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let K = PHI;
+let sweeping = false;
+let sweepStart = null;
+let sweepRAF = null;
+let animTime = 0;
+let activeTab = "lattice";
+
+// Pre-compute scan data
+const scanData = [];
+for (let ki = 1200; ki <= 2500; ki += 2) {
+  const k = ki / 1000;
+  scanData.push({ k, maxDn: qScore(k) });
+}
+
+function keyDeltas(K) {
+  const lk = Math.log(K);
+  return KEY_RELATIONS.map(r => {
+    const n = Math.log(r.ratio) / lk, nr = Math.round(n), dn = Math.abs(n - nr);
+    return { ...r, n, nr, dn };
+  });
+}
+function qScore(K) { return Math.max(...keyDeltas(K).map(d => d.dn)); }
+
+// ============================================================
+// UI UPDATE
+// ============================================================
+function updateAll() {
+  const isGolden = Math.abs(K - PHI) < 0.005;
+  const maxDn = qScore(K);
+
+  // K display
+  document.getElementById("kDisplay").textContent = "K = " + K.toFixed(4);
+  document.getElementById("kDisplay").style.color = isGolden ? "#e8b84a" : "#c06080";
+  const slider = document.getElementById("kSlider");
+  slider.value = K;
+  slider.className = "k-slider" + (isGolden ? " golden" : "");
+  document.getElementById("btnPhi").className = "btn btn-phi" + (isGolden ? " active" : "");
+
+  // Snap gauge
+  renderGauge();
+
+  // Compare stats
+  document.getElementById("statPhi").textContent = "max|Δn| = " + qScore(PHI).toFixed(4);
+  document.getElementById("statCurLabel").textContent = "BEI K = " + K.toFixed(4) + (isGolden ? " = Φ" : "");
+  document.getElementById("statCur").textContent = "max|Δn| = " + maxDn.toFixed(4);
+  document.getElementById("statCur").style.color = maxDn < 0.1 ? "#2ecc71" : "#c44";
+  const sub = document.getElementById("statCurSub");
+  if (maxDn < 0.1) { sub.textContent = "✦ TREFFER"; sub.style.color = "#2ecc71"; }
+  else { sub.textContent = "✗ " + (maxDn / qScore(PHI)).toFixed(0) + "× schlechter als Φ"; sub.style.color = "#c44"; }
+
+  // Canvas draws
+  drawLattice();
+  drawCompare();
+  drawResonance();
+}
+
+function renderGauge() {
+  const deltas = keyDeltas(K);
+  const maxDn = Math.max(...deltas.map(d => d.dn));
+  const isGood = maxDn < 0.1;
+  let html = "";
+  deltas.forEach(d => {
+    const col = d.dn < 0.01 ? "#2ecc71" : d.dn < 0.05 ? "#66dddd" : d.dn < 0.1 ? "#e8b84a" : d.dn < 0.2 ? "#dd8877" : "#cc4444";
+    const pct = Math.max(0, 1 - d.dn * 2);
+    const needleLeft = 50 + (d.n - d.nr) * 100;
+    html += `<div class="gauge-row">
+      <div class="gauge-label">${d.name}</div>
+      <div class="gauge-bar">
+        <div class="gauge-center"></div>
+        <div class="gauge-fill" style="width:${pct*50}%;background:${col}60"></div>
+        <div class="gauge-needle" style="left:${needleLeft}%;background:${col};box-shadow:0 0 6px ${col}"></div>
+      </div>
+      <div class="gauge-val" style="color:${col};font-weight:${d.dn<0.1?700:400}">Δn=${d.dn.toFixed(3)}</div>
+    </div>`;
+  });
+  const maxCol = isGood ? "#2ecc71" : maxDn < 0.2 ? "#e8b84a" : "#cc4444";
+  html += `<div class="gauge-summary">
+    <div class="gauge-label" style="color:${maxCol};font-weight:700">max|Δn|</div>
+    <div class="gauge-max" style="color:${maxCol}">${maxDn.toFixed(4)}</div>
+    <div class="gauge-status" style="color:${maxCol}">${isGood ? "✦ ALLE TREFFEN" : "✗ VERFEHLT"}</div>
+  </div>`;
+  document.getElementById("gauge").innerHTML = html;
+}
+
+// ============================================================
+// LATTICE CANVAS
+// ============================================================
+function drawLattice() {
+  const c = document.getElementById("latticeCanvas"), ctx = c.getContext("2d");
+  const W = c.width, H = c.height, logK = Math.log(K);
+  const pad = {l:50,r:20,t:60,b:40}, pW = W-pad.l-pad.r, pH = H-pad.t-pad.b;
+  const nMin = -1, nMax = 28;
+  const nToX = n => pad.l + ((n-nMin)/(nMax-nMin))*pW;
+
+  ctx.clearRect(0,0,W,H); ctx.fillStyle="#060c14"; ctx.fillRect(0,0,W,H);
+
+  // Grid lines
+  for (let n=0;n<=27;n++) {
+    const x = nToX(n);
+    ctx.strokeStyle="rgba(100,140,160,0.12)"; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,H-pad.b); ctx.stroke();
+    ctx.fillStyle="rgba(100,140,160,0.25)"; ctx.font="8px monospace"; ctx.textAlign="center";
+    if (n%2===0||[3,11,17].includes(n)) ctx.fillText(n,x,H-pad.b+10);
+  }
+  // Key grid points highlighted
+  [0,3,11,17].forEach(n => {
+    const x = nToX(n);
+    ctx.strokeStyle="rgba(232,184,74,0.25)"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,H-pad.b); ctx.stroke();
+    const gr=ctx.createLinearGradient(x-15,0,x+15,0);
+    gr.addColorStop(0,"transparent"); gr.addColorStop(0.5,"rgba(232,184,74,0.04)"); gr.addColorStop(1,"transparent");
+    ctx.fillStyle=gr; ctx.fillRect(x-15,pad.t,30,pH);
+  });
+
+  // Labels
+  ctx.fillStyle="#e8b84a"; ctx.font="bold 10px monospace"; ctx.textAlign="left";
+  ctx.fillText("HAUPTLEITER (e, u, μ, τ) — muss auf Gitterpunkten liegen",pad.l,pad.t-28);
+  ctx.fillStyle="#5a8a6a"; ctx.fillText("Andere Leitern (d, s, c, b, t) — eigene Phase, nicht auf Hauptgitter",pad.l,pad.t-12);
+
+  // Particles
+  PARTICLES.forEach((p,idx) => {
+    const n_ex = Math.log(p.mass/e_mass)/logK;
+    const n_round = Math.round(n_ex), delta = Math.abs(n_ex-n_round);
+    const x = nToX(n_ex), isMain = p.main;
+    const y = isMain ? pad.t+pH*0.25 : pad.t+pH*0.65;
+    const isSnapped = delta < 0.1;
+
+    if (isMain) {
+      const snapX = nToX(n_round);
+      if (delta>0.005) {
+        ctx.strokeStyle = isSnapped?"rgba(46,204,113,0.4)":"rgba(200,80,80,0.3)";
+        ctx.lineWidth=1; ctx.setLineDash([2,2]);
+        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(snapX,y); ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.beginPath(); ctx.arc(snapX,y,14,0,Math.PI*2);
+      ctx.strokeStyle = isSnapped?"rgba(46,204,113,0.3)":"rgba(200,80,80,0.1)";
+      ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+
+      if (isSnapped) {
+        const gRad = 20+(1-delta*10)*20;
+        const glow=ctx.createRadialGradient(x,y,0,x,y,gRad);
+        glow.addColorStop(0,"rgba(232,184,74,0.3)"); glow.addColorStop(0.5,"rgba(232,184,74,0.08)"); glow.addColorStop(1,"transparent");
+        ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(x,y,gRad,0,Math.PI*2); ctx.fill();
+        const pulse = Math.sin(animTime*2+idx)*0.3+0.7;
+        ctx.beginPath(); ctx.arc(x,y,16+pulse*6,0,Math.PI*2);
+        ctx.strokeStyle="rgba(232,184,74,0.15)"; ctx.lineWidth=1; ctx.stroke();
+      }
+      const radius = isSnapped?10:7;
+      ctx.beginPath(); ctx.arc(x,y,radius,0,Math.PI*2);
+      ctx.fillStyle = isSnapped?"#e8b84a":"rgba(200,120,80,0.5)"; ctx.fill();
+      ctx.strokeStyle = isSnapped?"#fff":"rgba(200,120,80,0.3)"; ctx.lineWidth=isSnapped?2:1; ctx.stroke();
+      ctx.fillStyle = isSnapped?"#fff":"rgba(200,180,160,0.5)";
+      ctx.font = (isSnapped?"bold ":"")+(isSnapped?14:11)+"px monospace";
+      ctx.textAlign="center"; ctx.fillText(p.sym,x,y-radius-6);
+      ctx.fillStyle = isSnapped?"rgba(46,204,113,0.8)":"rgba(200,80,80,0.6)"; ctx.font="9px monospace";
+      ctx.fillText("Δn = "+delta.toFixed(4),x,y+radius+14);
+    } else {
+      ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+      ctx.fillStyle="rgba(90,140,110,0.3)"; ctx.fill();
+      ctx.strokeStyle="rgba(90,140,110,0.2)"; ctx.lineWidth=0.5; ctx.stroke();
+      ctx.fillStyle="rgba(90,140,110,0.5)"; ctx.font="10px monospace"; ctx.textAlign="center"; ctx.fillText(p.sym,x,y-9);
+      ctx.fillStyle="rgba(90,140,110,0.3)"; ctx.font="8px monospace"; ctx.fillText("n="+n_ex.toFixed(1),x,y+14);
+    }
+  });
+  ctx.fillStyle="#5a7a8e"; ctx.font="10px monospace"; ctx.textAlign="center";
+  ctx.fillText("n = log(m/mₑ) / log(K)     K = "+K.toFixed(4)+(Math.abs(K-PHI)<0.005?" = Φ ✦":""),W/2,H-8);
+}
+
+// ============================================================
+// COMPARE CANVAS
+// ============================================================
+function drawCompare() {
+  const c = document.getElementById("compareCanvas"), ctx = c.getContext("2d");
+  const W=c.width,H=c.height;
+  const pad={l:48,r:16,t:16,b:36}, pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+  const kToX=k=>pad.l+((k-1.2)/1.3)*pW;
+  const dToY=d=>pad.t+(d/0.5)*pH;
+
+  ctx.clearRect(0,0,W,H);
+  let bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,"#060c14"); bg.addColorStop(1,"#0a1218");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#080e16"; ctx.fillRect(pad.l,pad.t,pW,pH);
+  ctx.strokeStyle="#1a2a38"; ctx.lineWidth=0.5; ctx.strokeRect(pad.l,pad.t,pW,pH);
+
+  // Threshold
+  const thY=dToY(0.1);
+  ctx.strokeStyle="rgba(46,204,113,0.3)"; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(pad.l,thY); ctx.lineTo(W-pad.r,thY); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle="rgba(46,204,113,0.5)"; ctx.font="9px monospace"; ctx.textAlign="left";
+  ctx.fillText("← ALLE treffen (Δn < 0.1)",pad.l+4,thY-4);
+  ctx.fillStyle="rgba(200,60,60,0.04)"; ctx.fillRect(pad.l,pad.t,pW,thY-pad.t);
+  ctx.fillStyle="rgba(46,204,113,0.03)"; ctx.fillRect(pad.l,thY,pW,pH-(thY-pad.t));
+
+  // Curve + fill
+  ctx.beginPath();
+  scanData.forEach((p,i)=>{const x=kToX(p.k),y=dToY(p.maxDn); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle="#5a8a9a"; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(kToX(scanData[0].k),dToY(scanData[0].maxDn));
+  scanData.forEach(p=>ctx.lineTo(kToX(p.k),dToY(p.maxDn)));
+  ctx.lineTo(kToX(scanData[scanData.length-1].k),pad.t+pH); ctx.lineTo(kToX(scanData[0].k),pad.t+pH);
+  ctx.closePath(); ctx.fillStyle="rgba(90,138,154,0.08)"; ctx.fill();
+
+  // Φ marker
+  const phiX=kToX(PHI), phiY=dToY(qScore(PHI));
+  ctx.strokeStyle="#e8b84a"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(phiX,pad.t); ctx.lineTo(phiX,pad.t+pH); ctx.stroke();
+  let gr=ctx.createRadialGradient(phiX,phiY,0,phiX,phiY,40);
+  gr.addColorStop(0,"rgba(232,184,74,0.3)"); gr.addColorStop(1,"transparent");
+  ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(phiX,phiY,40,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(phiX,phiY,5,0,Math.PI*2); ctx.fillStyle="#e8b84a"; ctx.fill(); ctx.strokeStyle="#fff"; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle="#e8b84a"; ctx.font="bold 13px monospace"; ctx.textAlign="center"; ctx.fillText("Φ",phiX,pad.t+12);
+  ctx.font="9px monospace"; ctx.fillStyle="rgba(232,184,74,0.8)"; ctx.fillText("max|Δn| = "+qScore(PHI).toFixed(4),phiX,phiY+16);
+
+  // Current K
+  if (Math.abs(K-PHI)>0.005) {
+    const kx=kToX(K), ky=dToY(qScore(K));
+    ctx.strokeStyle="#c06080"; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(kx,pad.t); ctx.lineTo(kx,pad.t+pH); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(kx,ky,4,0,Math.PI*2); ctx.fillStyle="#c06080"; ctx.fill();
+    ctx.fillStyle="#c06080"; ctx.font="9px monospace"; ctx.fillText("K="+K.toFixed(3),kx,ky-8);
+    ctx.fillText("max|Δn|="+qScore(K).toFixed(3),kx,ky+14);
+  }
+
+  ctx.fillStyle="rgba(200,60,60,0.5)"; ctx.font="9px monospace"; ctx.textAlign="left";
+  ctx.fillText("Keine Basis schafft",W-pad.r-130,pad.t+24);
+  ctx.fillText("max|Δn| < 0.1 ...",W-pad.r-130,pad.t+36);
+  ctx.fillStyle="rgba(232,184,74,0.7)"; ctx.fillText("... außer Φ!",W-pad.r-130,pad.t+52);
+
+  // Axes
+  ctx.fillStyle="#4a6a7e"; ctx.font="9px monospace"; ctx.textAlign="right";
+  [0,0.1,0.2,0.3,0.4,0.5].forEach(d=>ctx.fillText(d.toFixed(1),pad.l-4,dToY(d)+3));
+  ctx.textAlign="center";
+  [1.2,1.4,1.6,1.8,2.0,2.2,2.4].forEach(k=>ctx.fillText(k.toFixed(1),kToX(k),pad.t+pH+14));
+  ctx.fillStyle="#5a7a8e"; ctx.font="10px monospace"; ctx.fillText("Basis K",W/2,H-4);
+}
+
+// ============================================================
+// RESONANCE CANVAS
+// ============================================================
+function drawResonance() {
+  const c = document.getElementById("resonanceCanvas"), ctx = c.getContext("2d");
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle="#060c14"; ctx.fillRect(0,0,W,H);
+
+  const deltas = keyDeltas(K);
+  const maxDn = Math.max(...deltas.map(d=>d.dn));
+  const isRes = maxDn < 0.1;
+  const chH = (H-60)/5, padL=80, padR=30, waveW=W-padL-padR;
+
+  deltas.forEach((d,i) => {
+    const cy = 30+i*chH+chH/2;
+    const snap = Math.max(0, 1-d.dn*5);
+    ctx.fillStyle = snap>0.5?"rgba(46,204,113,0.03)":"rgba(200,60,60,0.02)";
+    ctx.fillRect(padL,cy-chH/2+2,waveW,chH-4);
+    ctx.fillStyle = snap>0.5?"#7ab":"#866"; ctx.font="bold 10px monospace"; ctx.textAlign="right";
+    ctx.fillText(d.name,padL-8,cy+4);
+
+    ctx.beginPath();
+    for (let x=0;x<=waveW;x+=2) {
+      const xN=x/waveW;
+      let y;
+      if (snap>0.5) {
+        y = cy+Math.sin(xN*(d.nr*0.8+2)*Math.PI*2+animTime*1.5)*(12+snap*10)*snap;
+      } else {
+        y = cy+Math.sin(xN*(d.n*1.1+1)*Math.PI+animTime*2.5)*8
+             +Math.sin(xN*(d.n*0.7+3)*Math.PI+animTime*3.1)*7
+             +Math.sin(xN*47+animTime*5+i*3)*4;
+      }
+      x===0?ctx.moveTo(padL+x,y):ctx.lineTo(padL+x,y);
+    }
+    const wc = snap>0.8?"#2ecc71":snap>0.5?"#66dddd":snap>0.3?"#e8b84a":"#cc4444";
+    ctx.strokeStyle=wc; ctx.lineWidth=snap>0.5?2:1; ctx.stroke();
+    if (snap>0.5) { ctx.strokeStyle=wc+"20"; ctx.lineWidth=6; ctx.stroke(); }
+    ctx.fillStyle=wc; ctx.font="9px monospace"; ctx.textAlign="left";
+    ctx.fillText("Δn = "+d.dn.toFixed(4),W-padR+4,cy-4);
+    ctx.fillStyle="#5a6a7a"; ctx.fillText("n = "+d.nr,W-padR+4,cy+8);
+    if (i<4) { ctx.strokeStyle="#1a2a38"; ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(padL,cy+chH/2); ctx.lineTo(W-padR,cy+chH/2); ctx.stroke(); }
+  });
+
+  ctx.fillStyle="#0a1218"; ctx.fillRect(0,0,W,24);
+  ctx.fillStyle=isRes?"#2ecc71":"#cc4444"; ctx.font="bold 11px monospace"; ctx.textAlign="center";
+  ctx.fillText(isRes?"✦ RESONANZ — K = "+K.toFixed(4)+" ≈ Φ — Alle 5 kohärent":"K = "+K.toFixed(4)+" — Keine Resonanz — Wellen destruktiv",W/2,16);
+}
+
+// ============================================================
+// TREE (static SVG)
+// ============================================================
+function buildTree() {
+  const pos = {e:{x:380,y:40},u:{x:190,y:130},d:{x:540,y:130},"μ":{x:90,y:230},s:{x:290,y:230},c:{x:190,y:330},"τ":{x:490,y:230},b:{x:590,y:330},t:{x:290,y:420}};
+  let svg = `<svg viewBox="0 0 720 470" id="tree-svg">
+  <defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="aG" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="rgba(232,184,74,0.6)"/></marker>
+    <marker id="aT" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="rgba(90,184,154,0.4)"/></marker>
+  </defs>`;
+
+  EDGES.forEach(e => {
+    const f=pos[e.from], to=pos[e.to]; if(!f||!to) return;
+    const dx=to.x-f.x,dy=to.y-f.y,len=Math.sqrt(dx*dx+dy*dy);
+    const nx=dx/len,ny=dy/len;
+    const mx=(f.x+to.x)/2,my=(f.y+to.y)/2-5;
+    const col=e.luc?"rgba(232,184,74,0.5)":"rgba(90,184,154,0.25)";
+    const sw=e.luc?2.5:1;
+    const dash=e.luc?"":'stroke-dasharray="4,3"';
+    const marker=e.luc?"url(#aG)":"url(#aT)";
+    svg += `<line x1="${f.x+nx*22}" y1="${f.y+ny*22}" x2="${to.x-nx*22}" y2="${to.y-ny*22}" stroke="${col}" stroke-width="${sw}" ${dash} marker-end="${marker}"/>`;
+    const rcol=e.luc?"rgba(232,184,74,0.3)":"rgba(90,184,154,0.15)";
+    svg += `<rect x="${mx-28}" y="${my-8}" width="56" height="16" rx="3" fill="#0a1218" stroke="${rcol}" stroke-width="0.5"/>`;
+    const tcol=e.luc?"#e8b84a":"#5ab89a";
+    svg += `<text x="${mx}" y="${my+4}" text-anchor="middle" fill="${tcol}" font-size="9" font-family="monospace" font-weight="${e.luc?700:400}">${e.op}</text>`;
+  });
+
+  PARTICLES.forEach(p => {
+    const pp=pos[p.sym]; if(!pp) return;
+    const nEx=Math.log(p.mass/e_mass)/LOG_PHI, delta=Math.abs(nEx-Math.round(nEx));
+    const isM=p.main;
+    const col=isM?"#e8b84a":"#5ab89a";
+    if (isM) svg += `<circle cx="${pp.x}" cy="${pp.y}" r="24" fill="none" stroke="#e8b84a" stroke-width="1" stroke-dasharray="3,2" opacity="0.3"/>`;
+    svg += `<g ${isM?'filter="url(#glow)"':''}>`;
+    svg += `<circle cx="${pp.x}" cy="${pp.y}" r="18" fill="${isM?"rgba(232,184,74,0.15)":"rgba(90,184,154,0.1)"}" stroke="${col}" stroke-width="${isM?2:1}"/>`;
+    svg += `<text x="${pp.x}" y="${pp.y-2}" text-anchor="middle" fill="${col}" font-size="${isM?16:14}" font-family="monospace" font-weight="700">${p.sym}</text>`;
+    const massStr = p.mass<1?p.mass.toFixed(3):p.mass<100?p.mass.toFixed(1):Math.round(p.mass);
+    svg += `<text x="${pp.x}" y="${pp.y+12}" text-anchor="middle" fill="#6a8a9a" font-size="7" font-family="monospace">${massStr} MeV</text>`;
+    if (delta<0.1) {
+      svg += `<rect x="${pp.x+18}" y="${pp.y-4}" width="40" height="12" rx="2" fill="rgba(46,204,113,0.15)"/>`;
+      svg += `<text x="${pp.x+38}" y="${pp.y+5}" text-anchor="middle" fill="#2ecc71" font-size="7" font-family="monospace">Δ${delta.toFixed(3)}</text>`;
+    }
+    svg += `</g>`;
+  });
+  svg += `<text x="44" y="36" fill="#e8b84a" font-size="10" font-family="monospace" font-weight="600" opacity="0.7">Hauptleiter (Phase ≈ 0)</text>`;
+  svg += `</svg>`;
+  document.getElementById("treeContainer").innerHTML = svg;
+}
+
+function buildLucasViz() {
+  let html = "";
+  LUCAS.forEach((l,i) => {
+    const used = LUCAS_USED.includes(l);
+    const h = Math.min(20+l*2.5,110);
+    const bg = used ? "linear-gradient(0deg,rgba(232,184,74,0.25),rgba(232,184,74,0.06))" : "rgba(30,48,64,0.4)";
+    const bord = used ? "1.5px solid #e8b84a" : "1px solid #1e3040";
+    const col = used ? "#e8b84a" : "#3a5a6e";
+    html += `<div class="lucas-bar"><div class="lucas-bar-inner" style="height:${h}px;background:${bg};border:${bord}"><span style="color:${col}">${l}</span></div><div class="lucas-idx">L<sub>${i}</sub></div>${used?'<div style="font-size:8px;color:#e8b84a">✦</div>':''}</div>`;
+  });
+  document.getElementById("lucasViz").innerHTML = html;
+}
+
+function buildProofTables() {
+  let html = '<thead><tr><th>n</th><th>Φⁿ</th><th>round</th><th>L<sub>n</sub></th><th>|err|</th><th>✓</th></tr></thead><tbody>';
+  for (let n=0;n<=7;n++) {
+    const pn=Math.pow(PHI,n), rn=Math.round(pn), ln=LUCAS[n];
+    const ok = n>=2?(rn===ln?"✓":"✗"):"—";
+    const col = ok==="✓"?"#2ecc71":ok==="✗"?"#c44":"#7a9aaa";
+    html += `<tr><td>${n}</td><td>${pn.toFixed(4)}</td><td>${rn}</td><td>${ln}</td><td>${Math.abs(pn-ln).toFixed(4)}</td><td style="color:${col}">${ok}</td></tr>`;
+  }
+  html += '</tbody>';
+  document.getElementById("lucasTable").innerHTML = html;
+
+  const status = [
+    ["Φ^Φ / Φ^(1/Φ) = Φ","Bewiesen","0"],["Φ einziger Fixpunkt","Bewiesen","0"],
+    ["L_n = round(Φⁿ)","Bewiesen","0"],["{3,4,11} = Lucas","Bewiesen","0"],
+    ["L₂=3 minimal","Abgeleitet","0"],["Φ ⟺ R > 0.5","Motiviert","1"],
+    ["Auswahl {L₂,L₃,L₅}","Empirisch","1"],
+  ];
+  let h2 = '<thead><tr><th>Ergebnis</th><th>Status</th><th>Frei</th></tr></thead><tbody>';
+  status.forEach(r => {
+    const sc = r[1]==="Bewiesen"?"#2ecc71":r[1]==="Abgeleitet"?"#66aabb":"#bbaa88";
+    const fc = r[2]==="0"?"#2ecc71":"#bbaa88";
+    h2 += `<tr><td style="color:#8a9aaa">${r[0]}</td><td style="color:${sc}">${r[1]}</td><td style="color:${fc};font-weight:700">${r[2]}</td></tr>`;
+  });
+  h2 += '</tbody>';
+  document.getElementById("statusTable").innerHTML = h2;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(id) {
+  activeTab = id;
+  document.querySelectorAll(".tab").forEach((t,i) => {
+    const ids = ["lattice","compare","resonance","tree","proof"];
+    t.className = "tab" + (ids[i]===id?" active":"");
+  });
+  document.querySelectorAll(".tab-content").forEach(tc => {
+    tc.className = "tab-content" + (tc.id==="tab-"+id?" active":"");
+  });
+  updateAll();
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+document.getElementById("kSlider").addEventListener("input", function() {
+  sweeping = false;
+  document.getElementById("btnSweep").className = "btn btn-sweep";
+  document.getElementById("btnSweep").textContent = "▶ Sweep";
+  K = parseFloat(this.value);
+  updateAll();
+});
+
+document.getElementById("compareCanvas").addEventListener("click", function(ev) {
+  const rect = this.getBoundingClientRect();
+  const x = (ev.clientX - rect.left) * (this.width / rect.width);
+  const k = 1.2 + ((x - 48) / (this.width - 64)) * 1.3;
+  if (k >= 1.2 && k <= 2.5) {
+    sweeping = false;
+    document.getElementById("btnSweep").className = "btn btn-sweep";
+    document.getElementById("btnSweep").textContent = "▶ Sweep";
+    K = k;
+    document.getElementById("kSlider").value = K;
+    updateAll();
+  }
+});
+
+function snapToPhi() {
+  sweeping = false;
+  document.getElementById("btnSweep").className = "btn btn-sweep";
+  document.getElementById("btnSweep").textContent = "▶ Sweep";
+  K = PHI;
+  updateAll();
+}
+
+function toggleSweep() {
+  sweeping = !sweeping;
+  const btn = document.getElementById("btnSweep");
+  btn.className = "btn btn-sweep" + (sweeping?" active":"");
+  btn.textContent = sweeping ? "⏸ Stop" : "▶ Sweep";
+  if (sweeping) sweepStart = performance.now();
+}
+
+// ============================================================
+// ANIMATION LOOP
+// ============================================================
+function tick(ts) {
+  animTime += 0.02;
+  if (sweeping) {
+    if (!sweepStart) sweepStart = ts;
+    const p = ((ts - sweepStart) % 10000) / 10000;
+    K = 1.2 + p * 1.3;
+    document.getElementById("kSlider").value = K;
+    updateAll();
+  } else {
+    // Only redraw animated canvases
+    if (activeTab === "lattice") drawLattice();
+    if (activeTab === "resonance") drawResonance();
+  }
+  requestAnimationFrame(tick);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildTree();
+buildLucasViz();
+buildProofTables();
+updateAll();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
